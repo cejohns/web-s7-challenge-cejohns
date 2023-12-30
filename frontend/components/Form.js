@@ -55,7 +55,7 @@ export default function Form() {
     if (selectedToppings.length === 0) {
       message += ' with no toppings';
     } else {
-      message += ` with ${selectedToppings.join(', ')} toppings`;
+      message += ` with ${selectedToppings.length} toppings`;
     }
   
     message += ' is on the way.';
