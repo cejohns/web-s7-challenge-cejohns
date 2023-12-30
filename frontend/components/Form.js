@@ -7,13 +7,19 @@ import { useState } from 'react';
 const validationErrors = {
   fullNameTooShort: 'full name must be at least 3 characters',
   fullNameTooLong: 'full name must be at most 20 characters',
-  sizeIncorrect: 'size must be S or M or L'
+  sizeIncorrect: 'size must be small, meduim or large'
 };
 
 const validationSchema = yup.object().shape({
   fullName: yup.string().min(3, validationErrors.fullNameTooShort).max(20, validationErrors.fullNameTooLong).required(),
   size: yup.string().oneOf(['S', 'M', 'L'], validationErrors.sizeIncorrect).required(),
 });
+
+const sizeNames = {
+  S: 'Small',
+  M: 'Medium',
+  L: 'Large',
+};
 
 const toppings = [
   { topping_id: '1', text: 'Pepperoni' },
@@ -40,7 +46,7 @@ export default function Form() {
     // Perform any necessary actions with the form data
     const { fullName, size, toppings } = data;
 
-    let message = `Thank you for your order, ${fullName}! Your ${size} pizza`;
+    let message = `Thank you for your order, ${fullName}! Your ${sizeNames[size]} pizza`;
   
     const selectedToppings = Object.entries(toppings)
       .filter(([_, isSelected]) => isSelected)
