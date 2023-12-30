@@ -1,4 +1,6 @@
+
 import React from 'react'
+import { Link, Routes, Route } from 'react-router-dom';
 import Home from './Home'
 import Form from './Form'
 
@@ -6,11 +8,17 @@ function App() {
   return (
     <div id="app">
       <nav>
-        {/* NavLinks here */}
+        {/* NavLinks */}
+        <Link to="/">Home</Link>
+        <Link to="/order">Order</Link>
       </nav>
-      {/* Route and Routes here */}
-      <Home />
-      <Form />
+      {/* Routes */}
+      <Routes>
+        {/* Route for Home */}
+        <Route path="/" element={<Home />} />
+        {/* Route for Order */}
+        <Route path="/order" element={<Form />} />
+      </Routes>
     </div>
   )
 }

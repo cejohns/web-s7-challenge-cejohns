@@ -40,14 +40,16 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.3.3",
     "axios": "^1.5.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.49.2",
     "react-router-dom": "^6.17.0",
     "styled-components": "^6.1.0",
-    "yup": "^1.3.2"
+    "yup": "^1.3.3"
   },
   "engines": {
     "node": ">=16.x",
