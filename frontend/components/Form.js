@@ -47,7 +47,7 @@ export default function Form() {
     let message = `Thank you for your order, ${fullName}! Your ${sizeNames[size]} pizza`;
 
     const selectedToppings = Object.entries(toppings)
-      .filter(([_, isSelected]) => isSelected)
+    .filter(([_, isSelected]) => isSelected)
       .map(([topping]) => topping);
 
     if (selectedToppings.length === 0) {
@@ -62,9 +62,11 @@ export default function Form() {
     reset(); // Reset the form after successful submission
   };
 
+  
+
   // Update disabled state on changes
   const validateForm = () => {
-    setIsSubmitDisabled(errors.fullName || errors.size);
+    setIsSubmitDisabled(errors.fullName && errors.size);
   };
 
   return (
