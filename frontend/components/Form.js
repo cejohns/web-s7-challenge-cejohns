@@ -6,7 +6,7 @@ import * as yup from 'yup';
 const validationErrors = {
   fullNameTooShort: 'full name must be at least 3 characters',
   fullNameTooLong: 'full name must be at most 20 characters',
-  sizeIncorrect: 'size must be S or M or L',
+  sizeIncorrect: 'size must be small, meduim or large'
 };
 
 const validationSchema = yup.object().shape({
@@ -39,88 +39,70 @@ export default function Form() {
   });
 
   const [successMessage, setSuccessMessage] = useState(null);
-  const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
 
   const onSubmit = (data) => {
+    console.log('Submitted data:', data);
+    // Perform any necessary actions with the form data
     const { fullName, size, toppings } = data;
 
     let message = `Thank you for your order, ${fullName}! Your ${sizeNames[size]} pizza`;
-
+  
     const selectedToppings = Object.entries(toppings)
-    .filter(([_, isSelected]) => isSelected)
+      .filter(([_, isSelected]) => isSelected)
       .map(([topping]) => topping);
-
+  
     if (selectedToppings.length === 0) {
       message += ' with no toppings';
     } else {
       message += ` with ${selectedToppings.length} toppings`;
     }
-
+  
     message += ' is on the way.';
-
+  
     setSuccessMessage(message);
     reset(); // Reset the form after successful submission
   };
 
   
 
-  // Update disabled state on changes
-  const validateForm = () => {
-    setIsSubmitDisabled(errors.fullName && errors.size);
-  };
-
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <h2>Order Your Pizza</h2>
-      {isSubmitSuccessful && <div className='success'>{successMessage}</div>}
-      {errors.fullName && <div className='error'>{errors.fullName.message}</div>}
-      {errors.size && <div className='error'>{errors.size.message}</div>}
+    <h2>Order Your Pizza</h2>
+    {isSubmitSuccessful && <div className='success'>{successMessage}</div>}
+    <div className="input-group">
+      <div>
+        <label htmlFor="fullName">Full Name</label><br />
+        <input placeholder="Type full name" id="fullName" type="text" {...register('fullName')} />
+        {errors.fullName && <div className='error'>{errors.fullName.message}</div>}
+      </div>
+    </div>
 
-      <div className="input-group">
-        <div>
-          <label htmlFor="fullName">Full Name</label><br />
+    <div className="input-group">
+      <div>
+        <label htmlFor="size">Size</label><br />
+        <select id="size" {...register('size')}>
+          <option value="">----Choose Size----</option>
+          <option value="S">Small</option>
+          <option value="M">Medium</option>
+          <option value="L">Large</option>
+        </select>
+        {errors.size && <div className='error'>{errors.size.message}</div>}
+      </div>
+    </div>
+
+    <div className="input-group">
+      {toppings.map((topping) => (
+        <label key={topping.topping_id}>
           <input
-            placeholder="Type full name"
-            id="fullName"
-            type="text"
-            {...register('fullName')}
-            onChange={validateForm} // Trigger validation on change
+            type="checkbox"
+            {...register(`toppings.${topping.text}`)}
           />
-        </div>
-      </div>
+          {topping.text}<br />
+        </label>
+      ))}
+    </div>
 
-      <div className="input-group">
-        <div>
-          <label htmlFor="size">Size</label><br />
-          <select
-            id="size"
-            {...register('size')}
-            onChange={validateForm} // Trigger validation on change
-          >
-            <option value="">----Choose Size----</option>
-            <option value="S">Small</option>
-            <option value="M">Medium</option>
-            <option value="L">Large</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="input-group">
-        {toppings.map((topping) => (
-          <label key={topping.topping_id}>
-            <input
-              type="checkbox"
-              {...register(`toppings.${topping.text}`)}
-            />
-            {topping.text}<br />
-          </label>
-        ))}
-      </div>
-
-      <input
-        type="submit"
-        disabled={isSubmitDisabled}
-      />
-    </form>
+    <input type="submit" disabled={Object.keys(errors).length > 0} />
+  </form>
   );
 }
