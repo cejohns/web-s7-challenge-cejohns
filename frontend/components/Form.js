@@ -2,17 +2,21 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import '../styles/styles.css'; 
+import '../styles/styles.css';
 
 const validationErrors = {
-  fullNameTooShort:  'full name must be at least 3 characters',
-  fullNameTooLong: 'full name must be at most 20 characters',
-  sizeIncorrect: 'size must be S or M or L'
+  fullNameTooShort: 'Full name must be at least 3 characters',
+  fullNameTooLong: 'Full name must be at most 20 characters',
+  sizeIncorrect: 'Size must be S or M or L',
 };
 
 const validationSchema = yup.object().shape({
-  fullName: yup.string().min(3, validationErrors.fullNameTooShort).max(20, validationErrors.fullNameTooLong).required(),
-  size: yup.string().oneOf(['S', 'M', 'L'], validationErrors.sizeIncorrect).required(),
+  fullName: yup
+    .string()
+    .min(3, validationErrors.fullNameTooShort)
+    .max(20, validationErrors.fullNameTooLong)
+    .required('Full name is required'),
+  size: yup.string().oneOf(['S', 'M', 'L'], validationErrors.sizeIncorrect).required('Size is required'),
 });
 
 const sizeNames = {
@@ -33,15 +37,14 @@ export default function Form() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitSuccessful, isValid }, // Use isValid instead of isSubmitSuccessful
+    formState: { errors, isSubmitSuccessful, isValid },
     reset,
+    trigger, // Destructure trigger from useForm
   } = useForm({
     resolver: yupResolver(validationSchema),
   });
 
   const [successMessage, setSuccessMessage] = useState(null);
-
-  
 
   const onSubmit = (data) => {
     console.log('Submitted data:', data);
@@ -49,63 +52,67 @@ export default function Form() {
     const { fullName, size, toppings } = data;
 
     let message = `Thank you for your order, ${fullName}! Your ${sizeNames[size]} pizza`;
-  
+
     const selectedToppings = Object.entries(toppings)
-      .filter(([_, isSelected]) => isSelected)
+      .filter(([topping, isSelected]) => isSelected)
       .map(([topping]) => topping);
-  
+
     if (selectedToppings.length === 0) {
       message += ' with no toppings';
     } else {
       message += ` with ${selectedToppings.length} toppings`;
     }
-  
+
     message += ' is on the way.';
-  
+
     setSuccessMessage(message);
     reset(); // Reset the form after successful submission
   };
 
-  
-
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-    <h2>Order Your Pizza</h2>
-    {isSubmitSuccessful && <div className='success'>{successMessage}</div>}
-    <div className="input-group">
-      <div>
-      <label htmlFor="fullName">Full Name</label><br />
-    <input placeholder="Type full name" id="fullName" type="text" {...register('fullName', { required: true })} />
-    {errors.fullName && <div className='error'>{errors.fullName.message}</div>}
-      </div>
-    </div>
-
-    <div className="input-group">
-      <div>
-        <label htmlFor="size">Size</label><br />
-        <select id="size" {...register('size')}>
-          <option value="">----Choose Size----</option>
-          <option value="S">Small</option>
-          <option value="M">Medium</option>
-          <option value="L">Large</option>
-        </select>
-        {errors.size && <div className='error'>{errors.size.message}</div>}
-      </div>
-    </div>
-
-    <div className="input-group">
-      {toppings.map((topping) => (
-        <label key={topping.topping_id}>
+      <h2>Order Your Pizza</h2>
+      {isSubmitSuccessful && <div className='success'>{successMessage}</div>}
+      <div className='input-group'>
+        <div>
+          <label htmlFor='fullName'>Full Name</label>
+          <br />
           <input
-            type="checkbox"
-            {...register(`toppings.${topping.text}`)}
+            placeholder='Type full name'
+            id='fullName'
+            type='text'
+            {...register('fullName', { required: true })}
+            onBlur={() => trigger('fullName')} // Trigger validation onBlur
           />
-          {topping.text}<br />
-        </label>
-      ))}
-    </div>
+          {errors.fullName && <div className='error'>{errors.fullName.message}</div>}
+        </div>
+      </div>
 
-    <input type="submit" disabled={!isValid} />
-  </form>
+      <div className='input-group'>
+        <div>
+          <label htmlFor='size'>Size</label>
+          <br />
+          <select id='size' {...register('size')}>
+            <option value=''>----Choose Size----</option>
+            <option value='S'>Small</option>
+            <option value='M'>Medium</option>
+            <option value='L'>Large</option>
+          </select>
+          {errors.size && <div className='error'>{errors.size.message}</div>}
+        </div>
+      </div>
+
+      <div className='input-group'>
+        {toppings.map((topping) => (
+          <label key={topping.topping_id}>
+            <input type='checkbox' {...register(`toppings.${topping.text}`)} />
+            {topping.text}
+            <br />
+          </label>
+        ))}
+      </div>
+
+      <input type='submit' disabled={!isValid} />
+    </form>
   );
 }
