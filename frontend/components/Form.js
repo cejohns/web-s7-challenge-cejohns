@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import '../styles/styles.css'; 
 
 const validationErrors = {
-  fullNameTooShort: 'full name must be at least 3 characters',
+  fullNameTooShort:  'full name must be at least 3 characters',
   fullNameTooLong: 'full name must be at most 20 characters',
-  sizeIncorrect: 'size must be small, meduim or large'
+  sizeIncorrect: 'size must be S or M or L'
 };
 
 const validationSchema = yup.object().shape({
@@ -32,13 +33,15 @@ export default function Form() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitSuccessful },
+    formState: { errors, isSubmitSuccessful, isValid }, // Use isValid instead of isSubmitSuccessful
     reset,
   } = useForm({
     resolver: yupResolver(validationSchema),
   });
 
   const [successMessage, setSuccessMessage] = useState(null);
+
+  
 
   const onSubmit = (data) => {
     console.log('Submitted data:', data);
@@ -71,9 +74,9 @@ export default function Form() {
     {isSubmitSuccessful && <div className='success'>{successMessage}</div>}
     <div className="input-group">
       <div>
-        <label htmlFor="fullName">Full Name</label><br />
-        <input placeholder="Type full name" id="fullName" type="text" {...register('fullName')} />
-        {errors.fullName && <div className='error'>{errors.fullName.message}</div>}
+      <label htmlFor="fullName">Full Name</label><br />
+    <input placeholder="Type full name" id="fullName" type="text" {...register('fullName', { required: true })} />
+    {errors.fullName && <div className='error'>{errors.fullName.message}</div>}
       </div>
     </div>
 
@@ -102,7 +105,7 @@ export default function Form() {
       ))}
     </div>
 
-    <input type="submit" disabled={Object.keys(errors).length > 0} />
+    <input type="submit" disabled={!isValid} />
   </form>
   );
 }
