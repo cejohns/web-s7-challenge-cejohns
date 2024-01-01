@@ -40,14 +40,44 @@ export default function Form() {
   });
 
   const [successMessage, setSuccessMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
+  
 
   const onSubmit = (data) => {
+    
+      // Validate full name
+      if (!data.fullName) {
+        // If full name is empty
+        //console.log('Full name is required!');
+        setErrorMessage(errors.fullName.fullNameTooShort);
+       
+     
+      } else if (data.fullName.length < 3) {
+        // If full name doesn't have both first and last names
+        
+        console.log('Please enter both your first and last name.');
+        setErrorMessage(errors.fullName.fullNameTooShort);
+        //return validationSchema.fullNameTooShort;
+        
+      }
+      else if(data.fullName.length > 20){
+        setErrorMessage(errors.fullName.fullNameTooLong);
+        
+      }
+
+      if (!data.size) {
+        setErrorMessage(errors.size.message);
+      } else {
+        return;
+      }
+    
+    
     console.log('Submitted data:', data);
     // Perform any necessary actions with the form data
     const { fullName, size, toppings } = data;
 
     let message = `Thank you for your order, ${fullName}! Your ${sizeNames[size]} pizza`;
-  
+      
     const selectedToppings = Object.entries(toppings)
       .filter(([_, isSelected]) => isSelected)
       .map(([topping]) => topping);
@@ -74,7 +104,8 @@ export default function Form() {
       <div>
       <label htmlFor="fullName">Full Name</label><br />
     <input placeholder="Type full name" id="fullName" type="text" {...register('fullName', { required: true })} />
-    {errors.fullName && <div className='error'>{errors.fullName.message}</div>}
+    {errors.fullName && <div className='error'>{errorMessage}</div>}
+    
       </div>
     </div>
 
