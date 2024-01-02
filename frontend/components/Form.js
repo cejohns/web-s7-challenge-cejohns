@@ -80,10 +80,10 @@ export default function Form() {
 
   const handleFullNameChange = (data) => {
     const { value } = data.target;
-
+        const fName = value.trim();
     yup
       .reach(validationSchema, 'fullName')
-      .validate(value)
+      .validate(fName)
       .then(() => {
         setErrorMessage(null); // Clear any previous error message
         setErrors({ ...errors, fullName: null }); // Set the error message
