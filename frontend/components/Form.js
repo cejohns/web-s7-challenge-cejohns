@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import '../styles/styles.css'; 
+import '../styles/styles.css';
 
 const validationErrors = {
-  fullNameTooShort:  'full name must be at least 3 characters',
+  fullNameTooShort: 'full name must be at least 3 characters',
   fullNameTooLong: 'full name must be at most 20 characters',
   sizeIncorrect: 'size must be S or M or L'
 };
@@ -30,111 +30,157 @@ const toppings = [
 ];
 
 export default function Form() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitSuccessful, isValid }, // Use isValid instead of isSubmitSuccessful
-    reset,
-  } = useForm({
-    resolver: yupResolver(validationSchema),
-  });
+  // const {
+  //   register,
+  //   handleSubmit,
+  //   formState: { errors, isSubmitSuccessful, isValid }, // Use isValid instead of isSubmitSuccessful
+  //   reset,
+  // } = useForm({
+  //   resolver: yupResolver(validationSchema),
+  // });
 
   const [successMessage, setSuccessMessage] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
-  
+  const [form, setForm] = useState({ fullName: '', size: '', toppings: [] });
+  const [disabled, setDisabled] = useState(true);
+  const [errors, setErrors] = useState({ fullName: null, size: null });
 
-  const onSubmit = (data) => {
-    
-      // Validate full name
-      if (!data.fullName) {
-        // If full name is empty
-        //console.log('Full name is required!');
-        setErrorMessage(errors.fullName.fullNameTooShort);
-       
-     
-      } else if (data.fullName.length < 3) {
-        // If full name doesn't have both first and last names
-        
-        console.log('Please enter both your first and last name.');
-        setErrorMessage(errors.fullName.fullNameTooShort);
-        //return validationSchema.fullNameTooShort;
-        
-      }
-      else if(data.fullName.length > 20){
-        setErrorMessage(errors.fullName.fullNameTooLong);
-        
-      }
-
-      if (!data.size) {
-        setErrorMessage(errors.size.message);
-      } else {
-        return;
-      }
-    
-    
-    console.log('Submitted data:', data);
-    // Perform any necessary actions with the form data
-    const { fullName, size, toppings } = data;
-
-    let message = `Thank you for your order, ${fullName}! Your ${sizeNames[size]} pizza`;
-      
-    const selectedToppings = Object.entries(toppings)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([topping]) => topping);
-  
-    if (selectedToppings.length === 0) {
-      message += ' with no toppings';
+  const handleToppingChange = (topping_id) => {
+    let currentSelectedToppings = form.toppings;
+    if (currentSelectedToppings.indexOf(topping_id) >= 0) {
+      currentSelectedToppings = [...currentSelectedToppings.filter(topping => topping != topping_id)];
     } else {
-      message += ` with ${selectedToppings.length} toppings`;
+      currentSelectedToppings = [...currentSelectedToppings, topping_id]
     }
-  
-    message += ' is on the way.';
-  
-    setSuccessMessage(message);
-    reset(); // Reset the form after successful submission
+    setForm({ ...form, toppings: [...currentSelectedToppings] });
+  }
+
+  const handleSizeChange = (event) => {
+    const { value } = event.target;
+
+    yup
+    .reach(validationSchema, 'size')
+    .validate(value)
+    .then(() => {
+      console.log('valid size changed', value);
+      setErrorMessage(null); // Clear any previous error message
+      setErrors({ ...errors, size: null }); // Set the error message
+      const formValues = { ...form, size: value };
+      validationSchema.isValid(formValues).then((valid) => {
+        setDisabled(!valid);
+      });
+    })
+    .catch((err) => {
+      console.log('!invalid size changed', value);
+      setErrors({ ...errors, size: err.errors[0] }); // Set the error message
+      setDisabled(true);
+    });
+    setForm({ ...form, size:event.target.value});
+  }
+
+  const handleFullNameChange = (data) => {
+    const { value } = data.target;
+
+    yup
+      .reach(validationSchema, 'fullName')
+      .validate(value)
+      .then(() => {
+        setErrorMessage(null); // Clear any previous error message
+        setErrors({ ...errors, fullName: null }); // Set the error message
+        const formValues = { ...form, fullName: value };
+        validationSchema.isValid(formValues).then((valid) => { 
+    
+          if(errors.size === null) setDisabled(!valid);
+        });
+      })
+      .catch((err) => {
+        setErrors({ ...errors, fullName: err.errors[0] }); // Set the error message
+        setDisabled(true);
+      });
+
+    setForm({ ...form, fullName: value });
   };
 
-  
+
+  const onSubmit = (data) => {
+    data.preventDefault();
+    // Validate full name
+    if (!form.fullName) {
+      // If full name is empty
+      setErrorMessage(validationErrors.fullNameTooShort);
+    } else if (form.fullName.length < 3) {
+      // If full name doesn't have both first and last names
+
+      setErrorMessage(validationErrors.fullNameTooShort);
+      //return validationSchema.fullNameTooShort;
+
+    } else if (form.fullName.length > 20) {
+      setErrorMessage(validationErrors.fullNameTooLong);
+    } else {
+      // Perform any necessary actions with the form data
+      let message = `Thank you for your order, ${form.fullName}! Your ${ sizeNames[form.size].toLowerCase()} pizza`;
+      if (form.toppings.length === 0) {
+        message += ' with no toppings';
+      } else {
+        message += ` with ${form.toppings.length} toppings`;
+      }
+
+      message += ' is on the way.';
+      setSuccessMessage(message);
+      setForm({ fullName: '', size: '', toppings: [] }); // Reset the form after successful submission
+    }
+
+
+    // const selectedToppings = Object.entries(toppings)
+    //   .filter(([_, isSelected]) => isSelected)
+    //   .map(([topping]) => topping);
+
+
+
+  };
+
+
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-    <h2>Order Your Pizza</h2>
-    {isSubmitSuccessful && <div className='success'>{successMessage}</div>}
-    <div className="input-group">
-      <div>
-      <label htmlFor="fullName">Full Name</label><br />
-    <input placeholder="Type full name" id="fullName" type="text" {...register('fullName', { required: true })} />
-    {errors.fullName && <div className='error'>{errorMessage}</div>}
-    
+    <form onSubmit={onSubmit}>
+      <h2>Order Your Pizza</h2>
+      {successMessage && <div className='success'>{successMessage}</div>}
+      <div className="input-group">
+        <div>
+          <label htmlFor="fullName">Full Name</label><br />
+          <input placeholder="Type full name" id="fullName" type="text" onChange={handleFullNameChange} value={form.fullName} />
+          {errors.fullName && <div className='error'>{errors.fullName}</div>}
+
+        </div>
       </div>
-    </div>
 
-    <div className="input-group">
-      <div>
-        <label htmlFor="size">Size</label><br />
-        <select id="size" {...register('size')}>
-          <option value="">----Choose Size----</option>
-          <option value="S">Small</option>
-          <option value="M">Medium</option>
-          <option value="L">Large</option>
-        </select>
-        {errors.size && <div className='error'>{errors.size.message}</div>}
+      <div className="input-group">
+        <div>
+          <label htmlFor="size">Size</label><br />
+          <select id="size" onChange={handleSizeChange} value={form.size}>
+            <option value="">----Choose Size----</option>
+            <option value="S">Small</option>
+            <option value="M">Medium</option>
+            <option value="L">Large</option>
+          </select>
+          {errors.size && <div className='error'>{errors.size}</div>}
+        </div>
       </div>
-    </div>
 
-    <div className="input-group">
-      {toppings.map((topping) => (
-        <label key={topping.topping_id}>
-          <input
-            type="checkbox"
-            {...register(`toppings.${topping.text}`)}
-          />
-          {topping.text}<br />
-        </label>
-      ))}
-    </div>
+      <div className="input-group">
+        {toppings.map((topping) => (
+          <label key={topping.topping_id}>
+            <input
+              type="checkbox"
+              checked={form.toppings.indexOf(topping.topping_id) != -1}
+              onChange={() => handleToppingChange(topping.topping_id)}
+            />
+            {topping.text}<br />
+          </label>
+        ))}
+      </div>
 
-    <input type="submit" disabled={!isValid} />
-  </form>
+      <input type="submit" disabled={disabled} />
+    </form>
   );
 }
